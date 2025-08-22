@@ -3,66 +3,38 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Simple Chat UI</title>
+  <title>Product Chatbot</title>
   <style>
     :root{
-      --bg: #f5f7fb;--card:#ffffff;--text:#1f2937;--muted:#6b7280;--primary:#2563eb;--bubble:#e5efff;--radius:18px
+      --bg:#f5f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--primary:#2563eb;--radius:18px
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Noto Naskh Arabic",Arial,sans-serif;color:var(--text)}
-    .app{display:flex;flex-direction:column;height:100svh;max-height:100dvh}
-    header{padding:14px 16px;background:var(--card);border-bottom:1px solid #e5e7eb;display:flex;gap:8px;align-items:center;justify-content:space-between}
-    header .title{font-weight:700}
-    header .status{font-size:12px;color:var(--muted)}
+    body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Naskh Arabic",sans-serif;color:var(--text)}
+    .app{display:flex;flex-direction:column;height:100vh}
+    header{padding:14px 16px;background:var(--card);border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
     .messages{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
     .row{display:flex}
     .row.user{justify-content:flex-end}
-    .bubble{max-width:min(78ch,90%);padding:10px 12px;border-radius:var(--radius);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+    .bubble{max-width:90%;padding:10px 12px;border-radius:var(--radius);box-shadow:0 1px 2px rgba(0,0,0,.06)}
     .bot .bubble{background:var(--card)}
     .user .bubble{background:var(--primary);color:#fff}
-    .meta{margin-top:4px;font-size:11px;color:var(--muted)}
     .inputbar{display:flex;gap:8px;padding:10px;background:var(--card);border-top:1px solid #e5e7eb}
-    .inputbar input{flex:1;padding:12px 14px;border:1px solid #d1d5db;border-radius:12px;font-size:14px;outline:none}
-    .inputbar button{border:0;background:var(--primary);color:#fff;padding:0 16px;border-radius:12px;font-weight:600;cursor:pointer}
-    .inputbar button:disabled{opacity:.6;cursor:not-allowed}
-    .toolbar{display:flex;align-items:center;gap:8px}
-    .toggle{appearance:none;width:42px;height:24px;background:#e5e7eb;border-radius:999px;position:relative;cursor:pointer;outline:none}
-    .toggle:checked{background:#111827}
-    .toggle:before{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s}
-    .toggle:checked:before{transform:translateX(18px)}
-
-    @media (max-width:480px){
-      .bubble{max-width:92%}
-    }
-    /* Dark mode */
-    body.dark{--bg:#0b1220;--card:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--primary:#3b82f6;--bubble:#1e293b}
-    body.dark .inputbar input{background:#0b1220;color:var(--text);border-color:#334155}
-    body.dark .messages{scrollbar-color:#334155 transparent}
+    .inputbar input{flex:1;padding:12px 14px;border:1px solid #d1d5db;border-radius:12px;font-size:14px}
+    .inputbar button{background:var(--primary);color:#fff;border:0;border-radius:12px;padding:0 16px;font-weight:600;cursor:pointer}
+    .product-card{border:1px solid #e5e7eb;border-radius:12px;padding:10px;margin-top:6px;background:#fff;max-width:220px}
+    .product-card img{width:100%;border-radius:8px}
+    .product-card h4{margin:8px 0 4px;font-size:14px}
+    .product-card .price{color:var(--primary);font-weight:bold}
   </style>
 </head>
 <body>
   <div class="app">
-    <header>
-      <div>
-        <div class="title">💬</div>
-        <div class="status" id="status">جاهز</div>
-      </div>
-      <div class="toolbar" title="الوضع الليلي">
-        <label>
-          <input id="darkToggle" type="checkbox" class="toggle"/>
-        </label>
-      </div>
-    </header>
-
+    <header><b>💬 Product Chat</b><span id="status">جاهز</span></header>
     <main id="messages" class="messages">
-      <div class="row bot">
-        <div class="bubble">أهلاً! اكتب رسالة وجرب الواجهة 😉</div>
-      </div>
+      <div class="row bot"><div class="bubble">أهلاً! جرب تكتب: "لابتوب لينوفو"</div></div>
     </main>
-
-    <form id="form" class="inputbar" autocomplete="off">
+    <form id="form" class="inputbar">
       <input id="input" placeholder="اكتب رسالة واضغط Enter" />
-      <button id="send" type="submit">إرسال</button>
+      <button type="submit">إرسال</button>
     </form>
   </div>
 
@@ -71,53 +43,59 @@
       messages: document.getElementById('messages'),
       form: document.getElementById('form'),
       input: document.getElementById('input'),
-      status: document.getElementById('status'),
-      darkToggle: document.getElementById('darkToggle')
+      status: document.getElementById('status')
     };
 
-    // Persist dark mode preference
-    const savedTheme = localStorage.getItem('chat_theme');
-    if(savedTheme === 'dark'){ document.body.classList.add('dark'); el.darkToggle.checked = true; }
+    // dummy products
+    const products = [
+      {name:"Lenovo IdeaPad 3", price:"1500 AED", img:"https://via.placeholder.com/200x120?text=Lenovo+IdeaPad"},
+      {name:"Lenovo ThinkPad X1", price:"3200 AED", img:"https://via.placeholder.com/200x120?text=ThinkPad+X1"},
+      {name:"Lenovo Gaming Legion 5", price:"4200 AED", img:"https://via.placeholder.com/200x120?text=Legion+5"}
+    ];
 
-    el.darkToggle.addEventListener('change', () => {
-      document.body.classList.toggle('dark', el.darkToggle.checked);
-      localStorage.setItem('chat_theme', el.darkToggle.checked ? 'dark' : 'light');
-    });
-
-    function addMessage(text, from='user'){
-      const row = document.createElement('div');
-      row.className = `row ${from}`;
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble';
-      bubble.textContent = text;
+    function addMessage(text, from="user"){
+      const row=document.createElement("div");
+      row.className=`row ${from}`;
+      const bubble=document.createElement("div");
+      bubble.className="bubble";
+      bubble.textContent=text;
       row.appendChild(bubble);
       el.messages.appendChild(row);
-      el.messages.scrollTo({ top: el.messages.scrollHeight, behavior: 'smooth' });
+      el.messages.scrollTo({top:el.messages.scrollHeight,behavior:"smooth"});
     }
 
-    async function fakeBotReply(userText){
-      // هنا لاحقاً تربط API حقيقية بدل الرد التجريبي
-      el.status.textContent = 'يكتب…';
-      await new Promise(r=>setTimeout(r, 500));
-      addMessage('استلمت: ' + userText, 'bot');
-      el.status.textContent = 'جاهز';
+    function addProducts(prodList){
+      const row=document.createElement("div");
+      row.className="row bot";
+      const bubble=document.createElement("div");
+      bubble.className="bubble";
+      bubble.innerHTML = "<b>المنتجات المقترحة:</b>";
+      prodList.forEach(p=>{
+        const card=document.createElement("div");
+        card.className="product-card";
+        card.innerHTML=`<img src="${p.img}"><h4>${p.name}</h4><div class="price">${p.price}</div>`;
+        bubble.appendChild(card);
+      });
+      row.appendChild(bubble);
+      el.messages.appendChild(row);
+      el.messages.scrollTo({top:el.messages.scrollHeight,behavior:"smooth"});
     }
 
-    el.form.addEventListener('submit', (e) => {
+    el.form.addEventListener("submit",(e)=>{
       e.preventDefault();
-      const txt = el.input.value.trim();
+      const txt=el.input.value.trim();
       if(!txt) return;
-      addMessage(txt, 'user');
-      el.input.value = '';
-      fakeBotReply(txt);
-    });
-
-    // إرسال بـ Enter
-    el.input.addEventListener('keydown', (e)=>{
-      if(e.key === 'Enter' && !e.shiftKey){
-        e.preventDefault();
-        el.form.dispatchEvent(new Event('submit'));
-      }
+      addMessage(txt,"user");
+      el.input.value="";
+      el.status.textContent="يبحث...";
+      setTimeout(()=>{
+        if(txt.includes("لابتوب") || txt.toLowerCase().includes("lenovo")){
+          addProducts(products);
+        } else {
+          addMessage("لم أجد منتجات متطابقة. جرب كلمة أخرى 🙂","bot");
+        }
+        el.status.textContent="جاهز";
+      },800);
     });
   </script>
 </body>
